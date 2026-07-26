@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blind Ranking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     ⭐ EDIT YOUR ROUNDS HERE ⭐  (scroll to the <script> at the
+     bottom of this file — look for "ROUNDS = [" — that's where
+     you type in your items. Everything above is just styling.)
+     ============================================================ */
+
+  :root{
+    --cream: #FBF5E8;
+    --cream-deep: #F4EAD4;
+    --navy: #263252;
+    --navy-soft: #4A5578;
+    --yellow: #EFB021;
+    --yellow-deep: #D99A0E;
+    --sage: #8CA478;
+    --pink: #F2C4CE;
+    --lilac: #D8C9EA;
+    --sky: #B9DAE8;
+    --mint: #C2E2D2;
+    --paper: #FFFDF8;
+    --shadow: rgba(38,50,82,0.16);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(239,176,33,0.16), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(140,164,120,0.16), transparent 42%),
+      var(--cream);
+    color:var(--navy);
+    font-family:'Manrope', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3, .display{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:700;
+    color:var(--navy);
+    margin:0;
+  }
+
+  .screen{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:48px 20px 64px;
+  }
+
+  .hidden{ display:none !important; }
+
+  /* ---------- confetti dots (decorative) ---------- */
+  .confetti-dot{
+    position:absolute;
+    border-radius:50%;
+    opacity:0.55;
+  }
+
+  /* ---------- HOME SCREEN ---------- */
+  .home-header{
+    text-align:center;
+    max-width:640px;
+    margin-bottom:8px;
+  }
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:0.22em;
+    font-size:12px;
+    font-weight:700;
+    color:var(--yellow-deep);
+    margin-bottom:14px;
+  }
+  .home-header h1{
+    font-size:clamp(36px, 6vw, 56px);
+    line-height:1.05;
+  }
+  .home-header p{
+    margin-top:14px;
+    font-size:16px;
+    color:var(--navy-soft);
+    line-height:1.5;
+  }
+
+  .round-list{
+    width:100%;
+    max-width:620px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin-top:36px;
+  }
+
+  .round-card{
+    background:var(--paper);
+    border-radius:18px;
+    padding:22px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    box-shadow:0 6px 18px var(--shadow);
+    border:1px solid rgba(38,50,82,0.06);
+    position:relative;
+    overflow:hidden;
+  }
+  .round-card::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:6px;
+    background:var(--dot-color, var(--yellow));
+  }
+  .round-card-text h3{
+    font-size:24px;
+    margin-bottom:4px;
+  }
+  .round-card-text span{
+    font-size:14px;
+    color:var(--navy-soft);
+  }
+  .round-card .actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+
+  button{
+    font-family:'Manrope', sans-serif;
+    cursor:pointer;
+    border:none;
+    outline-offset:3px;
+  }
+  button:focus-visible{ outline:3px solid var(--yellow-deep); }
+
+  .btn-primary{
+    background:var(--navy);
+    color:var(--cream);
+    font-weight:700;
+    font-size:14px;
+    padding:12px 22px;
+    border-radius:999px;
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .btn-primary:hover{ background:#1b2440; transform:translateY(-1px); }
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--navy-soft);
+    font-weight:600;
+    font-size:13px;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid rgba(38,50,82,0.18);
+    transition:background 0.15s ease;
+  }
+  .btn-ghost:hover{ background:rgba(38,50,82,0.06); }
+
+  .shuffle-toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--navy-soft);
+    margin-top:6px;
+  }
+
+  /* ---------- GAME SCREEN ---------- */
+  .game-top{
+    width:100%;
+    max-width:900px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .game-title{ font-size:22px; }
+  .progress-pill{
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy-soft);
+    background:var(--paper);
+    padding:6px 14px;
+    border-radius:999px;
+    box-shadow:0 2px 6px var(--shadow);
+  }
+
+  .end-labels{
+    width:100%;
+    max-width:900px;
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-weight:700;
+    color:var(--sage);
+    margin-top:26px;
+    margin-bottom:8px;
+  }
+  .end-labels span:last-child{ color:#c47a86; }
+
+  /* current item "note card" being handed to the group */
+  .current-item-wrap{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    justify-content:center;
+    margin:18px 0 30px;
+    min-height:118px;
+  }
+  .item-card{
+    position:relative;
+    background:var(--paper);
+    border-radius:16px;
+    padding:26px 30px 24px;
+    text-align:center;
+    box-shadow:0 10px 26px var(--shadow);
+    max-width:460px;
+    animation: dropIn 0.45s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .item-card[draggable="true"]{ cursor:grab; }
+  .item-card.dragging{ opacity:0.35; cursor:grabbing; }
+
+  .ack-card{
+    background:var(--paper);
+    border-radius:16px;
+    padding:22px 28px;
+    text-align:center;
+    box-shadow:0 10px 26px var(--shadow);
+    max-width:460px;
+    animation: dropIn 0.35s ease;
+  }
+  .ack-card p{
+    font-family:'Cormorant Garamond', serif;
+    font-size:19px;
+    font-style:italic;
+    color:var(--sage);
+    margin:0 0 14px;
+  }
+  .item-card .seal{
+    position:absolute;
+    top:-14px; left:50%; transform:translateX(-50%);
+    width:28px; height:28px;
+    border-radius:50%;
+    background:var(--yellow);
+    box-shadow:0 3px 8px rgba(217,154,14,0.5);
+  }
+  .item-card p{
+    font-family:'Cormorant Garamond', serif;
+    font-size:26px;
+    font-weight:600;
+    line-height:1.35;
+    margin:0;
+  }
+  .item-card .hint{
+    font-family:'Manrope', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color:var(--yellow-deep);
+    margin-bottom:10px;
+    display:block;
+  }
+
+  @keyframes dropIn{
+    0%{ opacity:0; transform:translateY(-16px) scale(0.96); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .all-placed-msg{
+    font-family:'Cormorant Garamond', serif;
+    font-size:24px;
+    color:var(--sage);
+    font-style:italic;
+  }
+
+  /* slot grid — the "place cards" */
+  .slots{
+    width:100%;
+    max-width:920px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:14px;
+  }
+
+  .slot{
+    background:var(--paper);
+    border-radius:14px;
+    padding:16px 14px 14px;
+    min-height:104px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    justify-content:flex-start;
+    box-shadow:0 4px 12px var(--shadow);
+    border:1.5px dashed transparent;
+    transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .slot.empty{
+    border-color:rgba(38,50,82,0.18);
+    cursor:pointer;
+    background:rgba(255,253,248,0.6);
+  }
+  .slot.empty:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 20px var(--shadow);
+    border-color:var(--yellow-deep);
+  }
+  .slot.drag-over{
+    transform:translateY(-3px) scale(1.02);
+    box-shadow:0 12px 22px var(--shadow);
+    border-color:var(--yellow-deep);
+    background:rgba(239,176,33,0.14);
+  }
+  .slot.filled{
+    animation: settle 0.4s ease;
+  }
+  @keyframes settle{
+    0%{ transform:scale(0.9); opacity:0.4; }
+    60%{ transform:scale(1.03); }
+    100%{ transform:scale(1); opacity:1; }
+  }
+
+  .slot-badge{
+    width:30px; height:30px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond', serif;
+    font-weight:700;
+    font-size:16px;
+    color:var(--navy);
+    background:var(--dot-color, var(--yellow));
+    margin-bottom:8px;
+    flex-shrink:0;
+  }
+  .slot-text{
+    font-size:14px;
+    font-weight:600;
+    line-height:1.3;
+    color:var(--navy);
+  }
+  .slot-placeholder{
+    font-size:12px;
+    color:var(--navy-soft);
+    opacity:0.6;
+  }
+
+  .game-controls{
+    display:flex;
+    gap:10px;
+    margin-top:34px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  /* ---------- RESULTS SCREEN ---------- */
+  .results-list{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin:30px 0 8px;
+  }
+  .results-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--paper);
+    border-radius:12px;
+    padding:12px 16px;
+    box-shadow:0 4px 12px var(--shadow);
+  }
+  .results-row .rnum{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:700;
+    font-size:20px;
+    width:28px;
+    text-align:center;
+    color:var(--navy);
+    flex-shrink:0;
+  }
+  .results-row span.rtext{ font-size:15px; font-weight:600; }
+
+  @media (max-width: 600px){
+    .item-card p{ font-size:21px; }
+    .home-header h1{ font-size:32px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HOME SCREEN ============ -->
+<div id="home-screen" class="screen">
+  <div class="home-header">
+    <div class="eyebrow">Bachelorette Party Game</div>
+    <h1>Blind Ranking</h1>
+    <p>One item appears at a time. Talk it out as a group, then agree where it lands. No right answers — just chaos and vibes.</p>
+  </div>
+  <div id="round-list" class="round-list"></div>
+</div>
+
+<!-- ============ GAME SCREEN ============ -->
+<div id="game-screen" class="screen hidden">
+  <div class="game-top">
+    <h2 id="game-title" class="game-title">Round title</h2>
+    <div id="progress-pill" class="progress-pill">1 / 10</div>
+  </div>
+
+  <div class="end-labels">
+    <span id="top-label">TOP LABEL</span>
+    <span id="bottom-label">BOTTOM LABEL</span>
+  </div>
+
+  <div class="current-item-wrap" id="current-item-wrap"></div>
+
+  <div id="slots" class="slots"></div>
+
+  <div class="game-controls">
+    <button class="btn-ghost" id="undo-btn">↩ Undo last placement</button>
+    <button class="btn-ghost" id="restart-btn">⟲ Restart this round</button>
+    <button class="btn-ghost" id="home-btn">← Back to rounds</button>
+  </div>
+</div>
+
+<!-- ============ RESULTS SCREEN ============ -->
+<div id="results-screen" class="screen hidden">
+  <div class="home-header">
+    <div class="eyebrow">You did it</div>
+    <h1 id="results-title">Here's the ranking</h1>
+    <p>Screenshot this before someone changes their mind.</p>
+  </div>
+  <div id="results-list" class="results-list"></div>
+  <div class="game-controls">
+    <button class="btn-primary" id="replay-btn">Play this round again</button>
+    <button class="btn-ghost" id="results-home-btn">← Back to rounds</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   ⭐⭐⭐  EDIT EVERYTHING BELOW TO BUILD YOUR OWN ROUNDS  ⭐⭐⭐
+
+   - Add as many rounds as you want — just copy/paste a whole
+     { ... } block inside the [ ] and change the text.
+   - Each round can have any number of items — it doesn't have
+     to be exactly 10 (the slots adjust automatically).
+   - "topLabel" / "bottomLabel" describe what #1 and the last
+     number mean (e.g. "Most likely" vs "Least likely").
+   - Leave "shuffle: true" if you want the item order randomized
+     each time you play (good for replaying with a new group).
+   ================================================================ */
+
+const ROUNDS = [
+  {
+    title: "Blind Ranking: All About the Bride",
+    topLabel: "Most true",
+    bottomLabel: "Least true",
+    shuffle: false,
+    items: [
+      "Replace me — item 1",
+      "Replace me — item 2",
+      "Replace me — item 3",
+      "Replace me — item 4",
+      "Replace me — item 5",
+      "Replace me — item 6",
+      "Replace me — item 7",
+      "Replace me — item 8",
+      "Replace me — item 9",
+      "Replace me — item 10"
+    ]
+  },
+  {
+    title: "Fuck, Marry, Kill: Wedding Traditions (example second round — delete if unused)",
+    topLabel: "Keep it",
+    bottomLabel: "Skip it",
+    shuffle: false,
+    items: [
+      "Replace me — item 1",
+      "Replace me — item 2",
+      "Replace me — item 3",
+      "Replace me — item 4",
+      "Replace me — item 5"
+    ]
+  }
+];
+
+/* ================================================================
+   Nothing below this line needs to be edited.
+   ================================================================ */
+
+const DOT_COLORS = ['var(--yellow)','var(--pink)','var(--sage)','var(--sky)','var(--lilac)','var(--mint)'];
+
+let state = {
+  roundIndex: null,
+  order: [],       // item indices in display order
+  nextPos: 0,      // pointer into order[]
+  slotFill: [],    // slotFill[i] = item text placed in slot i, or null
+  history: []      // stack of {slotIndex} for undo
+};
+
+const homeScreen = document.getElementById('home-screen');
+const gameScreen = document.getElementById('game-screen');
+const resultsScreen = document.getElementById('results-screen');
+const roundListEl = document.getElementById('round-list');
+
+function showScreen(el){
+  [homeScreen, gameScreen, resultsScreen].forEach(s => s.classList.add('hidden'));
+  el.classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+}
+
+function buildHome(){
+  roundListEl.innerHTML = '';
+  ROUNDS.forEach((round, idx) => {
+    const card = document.createElement('div');
+    card.className = 'round-card';
+    card.style.setProperty('--dot-color', DOT_COLORS[idx % DOT_COLORS.length]);
+    card.innerHTML = `
+      <div class="round-card-text">
+        <h3>${round.title}</h3>
+        <span>${round.items.length} items to rank</span>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" data-round="${idx}">Start</button>
+      </div>
+    `;
+    roundListEl.appendChild(card);
+  });
+  roundListEl.querySelectorAll('button[data-round]').forEach(btn => {
+    btn.addEventListener('click', () => startRound(parseInt(btn.dataset.round)));
+  });
+}
+
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startRound(idx){
+  const round = ROUNDS[idx];
+  let order = round.items.map((_, i) => i);
+  if(round.shuffle) order = shuffleArr(order);
+
+  state = {
+    roundIndex: idx,
+    order: order,
+    nextPos: 0,
+    slotFill: new Array(round.items.length).fill(null),
+    history: []
+  };
+
+  document.getElementById('game-title').textContent = round.title;
+  document.getElementById('top-label').textContent = round.topLabel || 'Top';
+  document.getElementById('bottom-label').textContent = round.bottomLabel || 'Bottom';
+
+  buildSlots();
+  renderCurrentItem();
+  showScreen(gameScreen);
+}
+
+function buildSlots(){
+  const round = ROUNDS[state.roundIndex];
+  const wrap = document.getElementById('slots');
+  wrap.innerHTML = '';
+  for(let i=0;i<round.items.length;i++){
+    const slot = document.createElement('div');
+    slot.className = 'slot empty';
+    slot.dataset.slotIndex = i;
+    slot.style.setProperty('--dot-color', DOT_COLORS[i % DOT_COLORS.length]);
+    slot.innerHTML = `
+      <div class="slot-badge">${i+1}</div>
+      <div class="slot-text slot-placeholder">—</div>
+    `;
+    slot.addEventListener('click', () => placeInSlot(i));
+
+    slot.addEventListener('dragover', (e) => {
+      if(!slot.classList.contains('empty')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      slot.classList.add('drag-over');
+    });
+    slot.addEventListener('dragleave', () => {
+      slot.classList.remove('drag-over');
+    });
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      if(!slot.classList.contains('empty')) return;
+      placeInSlot(i);
+    });
+
+    wrap.appendChild(slot);
+  }
+  updateProgress();
+}
+
+function updateProgress(){
+  const round = ROUNDS[state.roundIndex];
+  const placed = state.slotFill.filter(x => x !== null).length;
+  document.getElementById('progress-pill').textContent = `${Math.min(placed+1, round.items.length)} / ${round.items.length}`;
+}
+
+function renderCurrentItem(){
+  const round = ROUNDS[state.roundIndex];
+  const wrap = document.getElementById('current-item-wrap');
+
+  if(state.nextPos >= state.order.length){
+    wrap.innerHTML = `<div class="all-placed-msg">All items placed — see the full ranking below, or head to results.</div>`;
+    maybeShowResultsButton();
+    return;
+  }
+
+  const itemIdx = state.order[state.nextPos];
+  const text = round.items[itemIdx];
+  wrap.innerHTML = `
+    <div class="item-card" draggable="true">
+      <div class="seal"></div>
+      <span class="hint">Click a number, or drag this onto one</span>
+      <p>${escapeHtml(text)}</p>
+    </div>
+  `;
+
+  const cardEl = wrap.querySelector('.item-card');
+  cardEl.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', text);
+    e.dataTransfer.effectAllowed = 'move';
+    cardEl.classList.add('dragging');
+  });
+  cardEl.addEventListener('dragend', () => {
+    cardEl.classList.remove('dragging');
+  });
+}
+
+function maybeShowResultsButton(){
+  const wrap = document.getElementById('current-item-wrap');
+  const btn = document.createElement('button');
+  btn.className = 'btn-primary';
+  btn.style.marginTop = '18px';
+  btn.textContent = 'See final ranking →';
+  btn.addEventListener('click', showResults);
+  wrap.appendChild(btn);
+}
+
+function placeInSlot(slotIndex){
+  if(state.slotFill[slotIndex] !== null) return; // already filled
+  if(state.nextPos >= state.order.length) return; // nothing left to place
+
+  const round = ROUNDS[state.roundIndex];
+  const itemIdx = state.order[state.nextPos];
+  const text = round.items[itemIdx];
+
+  state.slotFill[slotIndex] = text;
+  state.history.push({ slotIndex, itemIdx });
+  state.nextPos++;
+
+  const slotEl = document.querySelector(`.slot[data-slot-index="${slotIndex}"]`);
+  slotEl.classList.remove('empty');
+  slotEl.classList.add('filled');
+  slotEl.innerHTML = `
+    <div class="slot-badge">${slotIndex+1}</div>
+    <div class="slot-text">${escapeHtml(text)}</div>
+  `;
+
+  updateProgress();
+
+  if(state.nextPos >= state.order.length){
+    renderCurrentItem(); // shows the "all placed" message + results button
+  } else {
+    showPlacedAck();
+  }
+}
+
+function showPlacedAck(){
+  const wrap = document.getElementById('current-item-wrap');
+  wrap.innerHTML = `
+    <div class="ack-card">
+      <p>Placed! ✓</p>
+      <button class="btn-primary" id="next-item-btn">Next item →</button>
+    </div>
+  `;
+  document.getElementById('next-item-btn').addEventListener('click', renderCurrentItem);
+}
+
+function undoLast(){
+  if(state.history.length === 0) return;
+  const last = state.history.pop();
+  state.slotFill[last.slotIndex] = null;
+  state.nextPos--;
+
+  const slotEl = document.querySelector(`.slot[data-slot-index="${last.slotIndex}"]`);
+  slotEl.classList.remove('filled');
+  slotEl.classList.add('empty');
+  slotEl.innerHTML = `
+    <div class="slot-badge">${last.slotIndex+1}</div>
+    <div class="slot-text slot-placeholder">—</div>
+  `;
+
+  updateProgress();
+  renderCurrentItem();
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showResults(){
+  const round = ROUNDS[state.roundIndex];
+  document.getElementById('results-title').textContent = round.title;
+  const list = document.getElementById('results-list');
+  list.innerHTML = '';
+  state.slotFill.forEach((text, i) => {
+    const row = document.createElement('div');
+    row.className = 'results-row';
+    row.innerHTML = `<div class="rnum">${i+1}</div><span class="rtext">${escapeHtml(text || '—')}</span>`;
+    list.appendChild(row);
+  });
+  showScreen(resultsScreen);
+}
+
+document.getElementById('undo-btn').addEventListener('click', undoLast);
+document.getElementById('restart-btn').addEventListener('click', () => startRound(state.roundIndex));
+document.getElementById('home-btn').addEventListener('click', () => showScreen(homeScreen));
+document.getElementById('replay-btn').addEventListener('click', () => startRound(state.roundIndex));
+document.getElementById('results-home-btn').addEventListener('click', () => showScreen(homeScreen));
+
+buildHome();
+</script>
+</body>
+</html>
